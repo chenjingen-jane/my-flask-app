@@ -70,16 +70,16 @@ init_db()
 # Function: get_logs
 # Description: Retrieve stored records from database
 # -----------------------------
-def get_logs():
-    """
-    Fetch all records (city and spending) from the database.
-    """
+def get_logs(user_id):
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT city, spending FROM logs")
-    data = cursor.fetchall()
+    cursor.execute(
+        "SELECT city, spending FROM logs WHERE user_id=?",
+        (user_id,)
+    )
 
+    data = cursor.fetchall()
     conn.close()
     return data
 
@@ -182,7 +182,7 @@ def register():
         try:
             conn.execute(
                 "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, password)
+                (username, hashed)
             )
             conn.commit()
         except sqlite3.IntegrityError:    
