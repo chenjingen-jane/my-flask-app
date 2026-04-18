@@ -145,30 +145,43 @@ def home():
     # Retrieve history logs for display
     logs = get_logs(session["user_id"])
 
-    return render_template("index.html", weather=weather, advice=advice, logs=logs)
+    return render_template(
+    "index.html",
+    weather=weather,
+    advice=advice,
+    logs=logs,
+    username=session.get("username")
+    )
 
+@app.route("/login", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
+        if not username or not password:
+            return render_template("login.html", message="Please fill all fields")
+
         conn = sqlite3.connect("data.db")
         cursor = conn.cursor()
+
         cursor.execute(
             "SELECT id, password FROM users WHERE username=?",
             (username,)
         )
+
         user = cursor.fetchone()
         conn.close()
 
         if user and check_password_hash(user[1], password):
             session["user_id"] = user[0]
+            session["username"] = username
             return redirect("/")
-        else:
-            return "Login failed"
 
-    return render_template("login.html")    
+        return render_template("login.html", message="Invalid username or password")
+
+    return render_template("login.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -176,21 +189,26 @@ def register():
         username = request.form.get("username")
         password = request.form.get("password")
 
+        if not username or not password:
+            return render_template("register.html", message="Please fill all fields")
+
         hashed = generate_password_hash(password)
 
         conn = sqlite3.connect("data.db")
+
         try:
             conn.execute(
                 "INSERT INTO users (username, password) VALUES (?, ?)",
                 (username, hashed)
             )
             conn.commit()
-        except sqlite3.IntegrityError:    
-            conn.close()
-            return "Username already exists!"
-        conn.close()
 
-        return "Registered successfully!"
+        except sqlite3.IntegrityError:
+            conn.close()
+            return render_template("register.html", message="Username already exists")
+
+        conn.close()
+        return redirect("/login")
 
     return render_template("register.html")
 @app.route("/logout")
