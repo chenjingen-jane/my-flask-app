@@ -3,7 +3,7 @@
 A full-stack Flask web application that combines weather data, personal spending logs, mood tracking, and user authentication into one smart lifestyle dashboard.
 
 ## Live Demo
-https://my-flask-app-mhjn.onrender.com
+https://Jane1005.pythonanywhere.com
 
 ## Features
 
